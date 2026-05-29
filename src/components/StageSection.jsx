@@ -50,7 +50,7 @@ function SettleButton({ label, required, isSettled, onSettle, payouts }) {
 
 export default function StageSection({ stage, matches, allMatches, onChange, onDelete, onAdd,
                                        collapsed, onToggleCollapse, settled, onSettle, payouts }) {
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('lfc');
   const allList = matches.filter(m => m.stage === stage.id);
   const list = filter === 'lfc' ? allList.filter(involvesLiverpool) : allList;
   const lfcCount = allList.filter(involvesLiverpool).length;
