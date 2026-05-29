@@ -28,11 +28,11 @@ function matchToDb(m) {
     round:        m.round    || null,
     home:         m.home,
     away:         m.away,
-    kickoff:      m.kickoff,
-    line:         m.line,
+    kickoff:      m.kickoff  || null,
+    line:         m.line      !== '' ? m.line      : null,
     pick:         m.pick,
-    home_score:   m.homeScore,
-    away_score:   m.awayScore,
+    home_score:   m.homeScore !== '' ? m.homeScore : null,
+    away_score:   m.awayScore !== '' ? m.awayScore : null,
   };
 }
 
@@ -45,11 +45,11 @@ function dbToMatch(row) {
     round:     row.round     ?? undefined,
     home:      row.home,
     away:      row.away,
-    kickoff:   row.kickoff,
-    line:      row.line,
+    kickoff:   row.kickoff   ?? '',
+    line:      row.line      ?? '',
     pick:      row.pick,
-    homeScore: row.home_score,
-    awayScore: row.away_score,
+    homeScore: row.home_score ?? '',
+    awayScore: row.away_score ?? '',
   };
 }
 
