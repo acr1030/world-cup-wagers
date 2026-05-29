@@ -4,7 +4,7 @@ import StageSection from './components/StageSection.jsx';
 import { STAGES, seedMatches, uid, FINAL_GROUP } from './data.js';
 import {
   loadMatches, saveMatchesLocal, upsertMatch, deleteMatchDb,
-  reseedDb, loadSetting, saveSetting,
+  reseedDb, loadSetting, saveSetting, checkDbConnection,
 } from './lib/db.js';
 import { supabase } from './lib/supabase.js';
 
@@ -130,6 +130,7 @@ export default function App() {
   const [collapsed, setCollapsed] = useState({});
   const [stagesOpen, setStagesOpen] = useState(true);
   const [tweaks, setTweaks] = useState({ alexPayout: 100, dadPayout: 20 });
+  const [dbStatus, setDbStatus] = useState('none'); // 'none' | 'ok' | 'error'
 
   const payouts = useMemo(() => ({
     alex: Number(tweaks.alexPayout) || 0,
@@ -139,18 +140,20 @@ export default function App() {
   // Load all state on mount
   useEffect(() => {
     (async () => {
-      const [ms, s, c, so, tw] = await Promise.all([
+      const [ms, s, c, so, tw, status] = await Promise.all([
         loadMatches(),
         loadSetting('settled'),
         loadSetting('collapsed'),
         loadSetting('stagesOpen'),
         loadSetting('tweaks'),
+        checkDbConnection(),
       ]);
       setMatches(ms);
       setSettled(s);
       setCollapsed(c);
       setStagesOpen(so);
       setTweaks(tw);
+      setDbStatus(status);
       setLoading(false);
     })();
   }, []);
@@ -185,18 +188,13 @@ export default function App() {
   }, [matches, loading]);
 
   const onChange = useCallback((next) => {
-    setMatches(prev => {
-      const updated = prev.map(m => m.id === next.id ? next : m);
-      scheduleSave([next]);
-      return updated;
-    });
+    setMatches(prev => prev.map(m => m.id === next.id ? next : m));
+    scheduleSave([next]);
   }, [scheduleSave]);
 
   const onDelete = useCallback((id) => {
-    setMatches(prev => {
-      scheduleSave(null, id);
-      return prev.filter(m => m.id !== id);
-    });
+    setMatches(prev => prev.filter(m => m.id !== id));
+    scheduleSave(null, id);
   }, [scheduleSave]);
 
   const onAdd = useCallback((stageId) => {
@@ -204,10 +202,8 @@ export default function App() {
       id: uid(), stage: stageId, group: '', home: '', away: '',
       kickoff: '', line: '', pick: 'over', homeScore: '', awayScore: '',
     };
-    setMatches(prev => {
-      scheduleSave([newMatch]);
-      return [...prev, newMatch];
-    });
+    setMatches(prev => [...prev, newMatch]);
+    scheduleSave([newMatch]);
   }, [scheduleSave]);
 
   const onSettle = useCallback((key) => {
@@ -297,7 +293,9 @@ export default function App() {
 
         <footer className="wcw__foot">
           <div className="wcw__footnote">
-            {supabase ? 'Synced to Supabase.' : 'Saved locally — add VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY to sync.'}
+            {dbStatus === 'ok'    && '✓ Synced to Supabase.'}
+            {dbStatus === 'none'  && 'Saving locally in this browser. Add VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY in Vercel to sync across devices.'}
+            {dbStatus === 'error' && '⚠ Supabase unreachable — saving locally. Check that the SQL migration was run and env vars are correct in Vercel.'}
           </div>
           <div className="wcw__footacts">
             <button type="button" className="wcw__btn wcw__btn--ghost" onClick={toggleAll}>
