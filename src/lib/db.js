@@ -1,14 +1,11 @@
 import { supabase } from './supabase.js';
 import { seedMatches } from '../data.js';
 
-// localStorage keys (fallback when Supabase is not configured)
 const LS_MATCHES  = 'wcw.matches.v2';
 const LS_SETTLED  = 'wcw.settled.v1';
 const LS_COLLAPSE = 'wcw.collapsed.v1';
 const LS_TWEAKS   = 'wcw.tweaks.v1';
 const LS_STAGES   = 'wcw.stagesOpen.v1';
-
-// ── localStorage helpers ────────────────────────────────────────────────────
 
 function lsLoad(key, fallback) {
   try {
@@ -22,15 +19,13 @@ function lsSave(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
 
-// ── DB ↔ app transforms ─────────────────────────────────────────────────────
-
 function matchToDb(m) {
   return {
     id:           m.id,
     stage:        m.stage,
-    group_letter: m.group  || null,
+    group_letter: m.group    || null,
     matchday:     m.matchday || null,
-    round:        m.round  || null,
+    round:        m.round    || null,
     home:         m.home,
     away:         m.away,
     kickoff:      m.kickoff,
@@ -58,29 +53,38 @@ function dbToMatch(row) {
   };
 }
 
-// ── Matches ─────────────────────────────────────────────────────────────────
+// ── Matches ──────────────────────────────────────────────────────────────────
 
 export async function loadMatches() {
+  // No Supabase configured — use localStorage only.
   if (!supabase) {
     const raw = lsLoad(LS_MATCHES, null);
     if (!raw || !Array.isArray(raw) || !raw.length) return seedMatches();
     return raw;
   }
+
   const { data, error } = await supabase
     .from('matches')
     .select('*')
     .order('kickoff', { ascending: true });
+
   if (error) {
-    console.error('loadMatches:', error.message);
+    // Supabase failed — fall back to localStorage so we don't overwrite real data
+    // with fresh seeds on every failing page load.
+    console.error('loadMatches (Supabase error, falling back to localStorage):', error.message);
+    const raw = lsLoad(LS_MATCHES, null);
+    if (raw && Array.isArray(raw) && raw.length) return raw;
     return seedMatches();
   }
+
   if (!data?.length) {
-    // First run with Supabase — seed the DB so edits have a base to build on.
+    // First run — DB is empty. Seed it so subsequent edits have a base.
     const fresh = seedMatches();
     const { error: seedErr } = await supabase.from('matches').insert(fresh.map(matchToDb));
     if (seedErr) console.error('seed on first load:', seedErr.message);
     return fresh;
   }
+
   return data.map(dbToMatch);
 }
 
@@ -110,8 +114,7 @@ export function saveMatchesLocal(matches) {
   lsSave(LS_MATCHES, matches);
 }
 
-// ── Settings ────────────────────────────────────────────────────────────────
-// Keys: 'settled' | 'collapsed' | 'tweaks' | 'stagesOpen'
+// ── Settings ─────────────────────────────────────────────────────────────────
 
 export async function loadSetting(key) {
   const defaults = {
@@ -146,8 +149,14 @@ export async function saveSetting(key, value) {
     if (lsKey) lsSave(lsKey, value);
     return;
   }
-  const { error } = await supabase
-    .from('settings')
-    .upsert({ key, value });
+  const { error } = await supabase.from('settings').upsert({ key, value });
   if (error) console.error('saveSetting:', error.message);
+}
+
+// ── Connection check ──────────────────────────────────────────────────────────
+// Returns 'none' | 'ok' | 'error'
+export async function checkDbConnection() {
+  if (!supabase) return 'none';
+  const { error } = await supabase.from('matches').select('id').limit(1);
+  return error ? 'error' : 'ok';
 }
