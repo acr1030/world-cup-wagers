@@ -70,7 +70,17 @@ export async function loadMatches() {
     .from('matches')
     .select('*')
     .order('kickoff', { ascending: true });
-  if (error || !data?.length) return seedMatches();
+  if (error) {
+    console.error('loadMatches:', error.message);
+    return seedMatches();
+  }
+  if (!data?.length) {
+    // First run with Supabase — seed the DB so edits have a base to build on.
+    const fresh = seedMatches();
+    const { error: seedErr } = await supabase.from('matches').insert(fresh.map(matchToDb));
+    if (seedErr) console.error('seed on first load:', seedErr.message);
+    return fresh;
+  }
   return data.map(dbToMatch);
 }
 
