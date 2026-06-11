@@ -1,55 +1,9 @@
 import { useState } from 'react';
 import MatchCard from './MatchCard.jsx';
-import { involvesLiverpool, resolveBet, payoutFor, requiredMatches, FINAL_GROUP } from '../data.js';
-
-function isReady(m) {
-  return resolveBet(m).status !== 'pending';
-}
-
-function SettleButton({ label, required, isSettled, onSettle, payouts }) {
-  const ready = required.length > 0 && required.every(isReady);
-  let alexW=0, dadW=0, alex$=0, dad$=0;
-  for (const m of required) {
-    const r = resolveBet(m);
-    const p = payoutFor(m, payouts);
-    if (r.status === 'alex') { alexW++; alex$ += p.alex; }
-    else if (r.status === 'dad') { dadW++; dad$ += p.dad; }
-  }
-  const net = alex$ - dad$;
-  const remaining = required.filter(m => !isReady(m)).length;
-
-  return (
-    <div className={`wcg__settle ${isSettled ? 'is-settled' : ''}`}>
-      <div className="wcg__settle-meta">
-        {isSettled ? (
-          <>
-            <span className="wcg__settle-badge">✓ Settled</span>
-            <span className="wcg__settle-sum">
-              Alex {alexW} · Dad {dadW} · net {net >= 0 ? '+' : '−'}${Math.abs(net).toLocaleString()}
-            </span>
-          </>
-        ) : ready ? (
-          <span className="wcg__settle-sum">
-            Ready: Alex {alexW} · Dad {dadW} · net {net >= 0 ? '+' : '−'}${Math.abs(net).toLocaleString()}
-          </span>
-        ) : (
-          <span className="wcg__settle-sum wcg__settle-sum--warn">
-            {required.length === 0
-              ? 'No qualifying matches yet'
-              : `${remaining} match${remaining !== 1 ? 'es' : ''} need O/U + score`}
-          </span>
-        )}
-      </div>
-      <button type="button" className="wcg__settle-btn"
-              disabled={!ready || isSettled} onClick={onSettle}>
-        {isSettled ? 'Round paid out' : label}
-      </button>
-    </div>
-  );
-}
+import { involvesLiverpool } from '../data.js';
 
 export default function StageSection({ stage, matches, allMatches, onChange, onDelete, onAdd,
-                                       collapsed, onToggleCollapse, settled, onSettle, payouts }) {
+                                       collapsed, onToggleCollapse, payouts }) {
   const [filter, setFilter] = useState('lfc');
   const allList = matches.filter(m => m.stage === stage.id);
   const list = filter === 'lfc' ? allList.filter(involvesLiverpool) : allList;
@@ -121,27 +75,6 @@ export default function StageSection({ stage, matches, allMatches, onChange, onD
             </div>
           )}
 
-          {(stage.id === 'group' || stage.id === 'r32' || stage.id === 'r16') && (
-            <SettleButton
-              label="Settle Round"
-              required={requiredMatches(stage.id, allMatches)}
-              isSettled={!!settled[stage.id]}
-              onSettle={() => onSettle(stage.id)}
-              payouts={payouts} />
-          )}
-
-          {stage.id === 'final' && (() => {
-            const req = FINAL_GROUP.flatMap(sid => requiredMatches(sid, allMatches));
-            const isSet = FINAL_GROUP.every(sid => settled[sid]);
-            return (
-              <SettleButton
-                label="Settle Up — Final Payout"
-                required={req}
-                isSettled={isSet}
-                onSettle={() => onSettle('final-group')}
-                payouts={payouts} />
-            );
-          })()}
         </>
       )}
     </section>
