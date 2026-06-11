@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header.jsx';
 import StageSection from './components/StageSection.jsx';
-import { STAGES, seedMatches, uid, FINAL_GROUP } from './data.js';
+import { STAGES, seedMatches, uid } from './data.js';
 import {
   loadMatches, saveMatchesLocal, upsertMatch, deleteMatchDb,
   reseedDb, loadSetting, saveSetting, checkDbConnection,
@@ -126,7 +126,6 @@ const SAVE_DELAY = supabase ? 800 : 0;
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [matches, setMatches] = useState([]);
-  const [settled, setSettled] = useState({});
   const [collapsed, setCollapsed] = useState({});
   const [stagesOpen, setStagesOpen] = useState(true);
   const [tweaks, setTweaks] = useState({ alexPayout: 100, dadPayout: 20 });
@@ -140,16 +139,14 @@ export default function App() {
   // Load all state on mount
   useEffect(() => {
     (async () => {
-      const [ms, s, c, so, tw, status] = await Promise.all([
+      const [ms, c, so, tw, status] = await Promise.all([
         loadMatches(),
-        loadSetting('settled'),
         loadSetting('collapsed'),
         loadSetting('stagesOpen'),
         loadSetting('tweaks'),
         checkDbConnection(),
       ]);
       setMatches(ms);
-      setSettled(s);
       setCollapsed(c);
       setStagesOpen(so);
       setTweaks(tw);
@@ -206,20 +203,6 @@ export default function App() {
     scheduleSave([newMatch]);
   }, [scheduleSave]);
 
-  const onSettle = useCallback((key) => {
-    setSettled(prev => {
-      let next;
-      if (key === 'final-group') {
-        next = { ...prev };
-        FINAL_GROUP.forEach(sid => { next[sid] = Date.now(); });
-      } else {
-        next = { ...prev, [key]: Date.now() };
-      }
-      saveSetting('settled', next);
-      return next;
-    });
-  }, []);
-
   const onToggleCollapse = useCallback((stageId) => {
     setCollapsed(prev => {
       const next = { ...prev, [stageId]: !prev[stageId] };
@@ -255,16 +238,12 @@ export default function App() {
     if (!window.confirm('Reset to the full 2026 schedule? All bets will be erased.')) return;
     const fresh = seedMatches();
     setMatches(fresh);
-    setSettled({});
-    saveSetting('settled', {});
     await reseedDb(fresh);
   };
 
   const onClearAll = async () => {
     if (!window.confirm('Delete every match? You can re-seed afterward.')) return;
     setMatches([]);
-    setSettled({});
-    saveSetting('settled', {});
     await reseedDb([]);
   };
 
@@ -288,7 +267,7 @@ export default function App() {
             matches={matches} allMatches={matches}
             onChange={onChange} onDelete={onDelete} onAdd={onAdd}
             collapsed={!!collapsed[s.id]} onToggleCollapse={onToggleCollapse}
-            settled={settled} onSettle={onSettle} payouts={payouts} />
+            payouts={payouts} />
         ))}
 
         <footer className="wcw__foot">
