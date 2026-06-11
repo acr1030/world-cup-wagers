@@ -1,4 +1,4 @@
-import { resolveBet, payoutFor } from '../data.js';
+import { resolveBet, payoutFor, involvesLiverpool } from '../data.js';
 
 function fmtKick(s) {
   if (!s) return '—';
@@ -14,12 +14,13 @@ export default function MatchCard({ match, onChange, onDelete, payouts }) {
   const r = resolveBet(match);
   const dadPick = match.pick === 'over' ? 'under' : 'over';
   const p = payoutFor(match, payouts);
+  const counted = involvesLiverpool(match);
 
   let chipLabel = 'Pending';
   let chipMod = 'wcm__chip--pending';
   if (r.status === 'push') { chipLabel = 'Push'; chipMod = 'wcm__chip--push'; }
-  else if (r.status === 'alex') { chipLabel = `Alex +$${p.alex}`; chipMod = 'wcm__chip--alex'; }
-  else if (r.status === 'dad')  { chipLabel = `Dad +$${p.dad}`;  chipMod = 'wcm__chip--dad'; }
+  else if (r.status === 'alex') { chipLabel = counted ? `Alex +$${p.alex}` : 'Alex'; chipMod = 'wcm__chip--alex'; }
+  else if (r.status === 'dad')  { chipLabel = counted ? `Dad +$${p.dad}`  : 'Dad';  chipMod = 'wcm__chip--dad'; }
 
   return (
     <div className={`wcm ${r.status === 'alex' ? 'wcm--alex' : r.status === 'dad' ? 'wcm--dad' : ''}`}>
