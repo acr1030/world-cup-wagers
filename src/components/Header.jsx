@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { STAGES, LFC_ONLY_STAGES, LIVERPOOL_COUNTRIES, resolveBet, payoutFor } from '../data.js';
-import { saveSetting } from '../lib/db.js';
 
 function isCounted(m) {
   if (!LFC_ONLY_STAGES.has(m.stage)) return true;
@@ -10,7 +9,7 @@ function isCounted(m) {
 
 function computeStats(matches, payouts) {
   const byStage = Object.fromEntries(STAGES.map(s => [s.id, { alex:0, dad:0, push:0, pending:0 }]));
-  let alexWins=0, dadWins=0, pushes=0, settled=0, totalCounted=0;
+  let alexWins=0, dadWins=0, pushes=0, totalCounted=0;
   let alexDollars=0, dadDollars=0;
 
   for (const m of matches) {
@@ -20,12 +19,12 @@ function computeStats(matches, payouts) {
     if (!isCounted(m)) continue;
     totalCounted++;
     const p = payoutFor(m, payouts);
-    if (r.status === 'alex')    { alexWins++; alexDollars += p.alex; settled++; }
-    else if (r.status === 'dad') { dadWins++;  dadDollars  += p.dad;  settled++; }
-    else if (r.status === 'push') { pushes++; settled++; }
+    if (r.status === 'alex')     { alexWins++; alexDollars += p.alex; }
+    else if (r.status === 'dad') { dadWins++;  dadDollars  += p.dad;  }
+    else if (r.status === 'push') { pushes++; }
   }
 
-  return { alexWins, dadWins, pushes, settled, alexDollars, dadDollars,
+  return { alexWins, dadWins, pushes, alexDollars, dadDollars,
            net: alexDollars - dadDollars, byStage, total: totalCounted };
 }
 
@@ -103,16 +102,13 @@ export default function Header({ matches, payouts, stagesOpen, onToggleStages })
         </div>
       </div>
 
-      <div className="wcs__cards wcs__cards--3">
+      <div className="wcs__cards wcs__cards--2">
         <StatCard kind="alex" label="Alex"
           value={<><span className="wcs__big">{s.alexWins}</span><span className="wcs__small"> wins</span></>}
           sub={<>{fmt(s.alexDollars)} <span className="wcs__muted">· ${payouts.alex}/win</span></>} />
         <StatCard kind="dad" label="Dad"
           value={<><span className="wcs__big">{s.dadWins}</span><span className="wcs__small"> wins</span></>}
           sub={<>{fmt(s.dadDollars)} <span className="wcs__muted">· ${payouts.dad}/win</span></>} />
-        <StatCard kind="settled" label="Settled"
-          value={<><span className="wcs__big">{s.settled}</span><span className="wcs__small">/{s.total}</span></>}
-          sub={<>{s.total - s.settled} pending{s.pushes > 0 ? ` · ${s.pushes} push${s.pushes > 1 ? 'es' : ''}` : ''}</>} />
       </div>
 
       <div className="wcs__stagestoggle">
