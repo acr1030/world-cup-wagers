@@ -129,6 +129,7 @@ export default function App() {
   const [collapsed, setCollapsed] = useState({});
   const [stagesOpen, setStagesOpen] = useState(true);
   const [tweaks, setTweaks] = useState({ alexPayout: 100, dadPayout: 20 });
+  const [payments, setPayments] = useState([]);
   const [dbStatus, setDbStatus] = useState('none'); // 'none' | 'ok' | 'error'
 
   const payouts = useMemo(() => ({
@@ -139,17 +140,19 @@ export default function App() {
   // Load all state on mount
   useEffect(() => {
     (async () => {
-      const [ms, c, so, tw, status] = await Promise.all([
+      const [ms, c, so, tw, pmts, status] = await Promise.all([
         loadMatches(),
         loadSetting('collapsed'),
         loadSetting('stagesOpen'),
         loadSetting('tweaks'),
+        loadSetting('payments'),
         checkDbConnection(),
       ]);
       setMatches(ms);
       setCollapsed(c);
       setStagesOpen(so);
       setTweaks(tw);
+      setPayments(pmts);
       setDbStatus(status);
       setLoading(false);
     })();
@@ -202,6 +205,14 @@ export default function App() {
     setMatches(prev => [...prev, newMatch]);
     scheduleSave([newMatch]);
   }, [scheduleSave]);
+
+  const onAddPayment = useCallback((amount) => {
+    setPayments(prev => {
+      const next = [{ amount, date: new Date().toISOString() }, ...prev];
+      saveSetting('payments', next);
+      return next;
+    });
+  }, []);
 
   const onToggleCollapse = useCallback((stageId) => {
     setCollapsed(prev => {
@@ -259,7 +270,8 @@ export default function App() {
   return (
     <div className="wcw" data-theme="paper">
       <Header matches={matches} payouts={payouts}
-              stagesOpen={stagesOpen} onToggleStages={onToggleStages} />
+              stagesOpen={stagesOpen} onToggleStages={onToggleStages}
+              payments={payments} onAddPayment={onAddPayment} />
 
       <main className="wcw__main">
         {STAGES.map(s => (
