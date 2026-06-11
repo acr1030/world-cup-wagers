@@ -214,6 +214,14 @@ export default function App() {
     });
   }, []);
 
+  const onDeletePayment = useCallback((index) => {
+    setPayments(prev => {
+      const next = prev.filter((_, i) => i !== index);
+      saveSetting('payments', next);
+      return next;
+    });
+  }, []);
+
   const onToggleCollapse = useCallback((stageId) => {
     setCollapsed(prev => {
       const next = { ...prev, [stageId]: !prev[stageId] };
@@ -271,7 +279,7 @@ export default function App() {
     <div className="wcw" data-theme="paper">
       <Header matches={matches} payouts={payouts}
               stagesOpen={stagesOpen} onToggleStages={onToggleStages}
-              payments={payments} onAddPayment={onAddPayment} />
+              payments={payments} onAddPayment={onAddPayment} onDeletePayment={onDeletePayment} />
 
       <main className="wcw__main">
         {STAGES.map(s => (
