@@ -73,7 +73,15 @@ function StageBreakdown({ stats }) {
   );
 }
 
-function PaymentLog({ payments, onAdd }) {
+function TrashIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      <path d="M2 3.5h9M5 3.5V2.5a.5.5 0 01.5-.5h2a.5.5 0 01.5.5v1M10.5 3.5l-.75 7a.5.5 0 01-.5.45H3.75a.5.5 0 01-.5-.45L2.5 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function PaymentLog({ payments, onAdd, onDelete }) {
   const [input, setInput] = useState('');
 
   const handleAdd = () => {
@@ -86,33 +94,33 @@ function PaymentLog({ payments, onAdd }) {
   const total = payments.reduce((s, p) => s + p.amount, 0);
 
   return (
-    <div style={{ padding: '12px 20px 14px', borderTop: '1px solid rgba(0,0,0,.07)' }}>
+    <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase',
                     color: 'rgba(41,38,27,.45)', marginBottom: 8 }}>
         Amount Paid to Date
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: payments.length ? 10 : 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', flex: 1, maxWidth: 180,
+        <div style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto', width: 130,
                       border: '1px solid rgba(0,0,0,.15)', borderRadius: 8,
                       background: 'rgba(255,255,255,.7)', overflow: 'hidden', height: 32 }}>
-          <span style={{ padding: '0 6px 0 10px', color: 'rgba(41,38,27,.5)', fontSize: 13 }}>$</span>
+          <span style={{ padding: '0 4px 0 10px', color: 'rgba(41,38,27,.5)', fontSize: 13 }}>$</span>
           <input
             type="number" min="0" step="1" value={input} placeholder="0"
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
             style={{ flex: 1, border: 0, background: 'transparent', outline: 'none',
                      fontSize: 13, color: '#29261b', padding: '0 8px 0 0',
-                     MozAppearance: 'textfield' }} />
+                     MozAppearance: 'textfield', width: 0 }} />
         </div>
         <button
           type="button" onClick={handleAdd}
           style={{ height: 32, padding: '0 14px', borderRadius: 8, border: '1px solid rgba(0,0,0,.15)',
                    background: 'rgba(41,38,27,.06)', color: '#29261b', fontSize: 12,
-                   fontWeight: 600, cursor: 'pointer' }}>
+                   fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
           Log
         </button>
         {total > 0 && (
-          <span style={{ fontSize: 12, color: 'rgba(41,38,27,.5)', marginLeft: 4 }}>
+          <span style={{ fontSize: 12, color: 'rgba(41,38,27,.5)', flexShrink: 0 }}>
             Total: <b style={{ color: '#29261b' }}>${total.toLocaleString()}</b>
           </span>
         )}
@@ -120,10 +128,22 @@ function PaymentLog({ payments, onAdd }) {
       {payments.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {payments.map((p, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between',
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                    fontSize: 12, color: 'rgba(41,38,27,.65)' }}>
               <span>{new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-              <span style={{ fontWeight: 600 }}>${p.amount.toLocaleString()}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontWeight: 600 }}>${p.amount.toLocaleString()}</span>
+                <button
+                  type="button" onClick={() => onDelete(i)}
+                  title="Delete payment"
+                  style={{ appearance: 'none', border: 0, background: 'transparent', padding: 2,
+                           cursor: 'pointer', color: 'rgba(41,38,27,.35)', lineHeight: 1,
+                           borderRadius: 4, display: 'flex', alignItems: 'center' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#c0392b'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(41,38,27,.35)'}>
+                  <TrashIcon />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -132,11 +152,13 @@ function PaymentLog({ payments, onAdd }) {
   );
 }
 
-export default function Header({ matches, payouts, stagesOpen, onToggleStages, payments, onAddPayment }) {
+export default function Header({ matches, payouts, stagesOpen, onToggleStages, payments, onAddPayment, onDeletePayment }) {
   const s = computeStats(matches, payouts);
+  const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+  const remaining = s.net - totalPaid;
   const fmt = n => '$' + n.toLocaleString();
-  const netSign = s.net > 0 ? '+' : s.net < 0 ? '−' : '';
-  const netAbs = Math.abs(s.net);
+  const remSign = remaining > 0 ? '+' : remaining < 0 ? '−' : '';
+  const remAbs = Math.abs(remaining);
 
   return (
     <header className="wcs">
@@ -153,23 +175,27 @@ export default function Header({ matches, payouts, stagesOpen, onToggleStages, p
 
         <div className="wcs__net" aria-label="Alex's net payout">
           <div className="wcs__netlbl">Alex's payout</div>
-          <div className={`wcs__netval ${s.net > 0 ? 'is-pos' : s.net < 0 ? 'is-neg' : ''}`}>
-            <span className="wcs__netsign">{netSign}</span>
-            <span className="wcs__netnum">${netAbs.toLocaleString()}</span>
+          <div className={`wcs__netval ${remaining > 0 ? 'is-pos' : remaining < 0 ? 'is-neg' : ''}`}>
+            <span className="wcs__netsign">{remSign}</span>
+            <span className="wcs__netnum">${remAbs.toLocaleString()}</span>
           </div>
-          <div className="wcs__netsub">{fmt(s.alexDollars)} won − {fmt(s.dadDollars)} owed</div>
+          <div className="wcs__netsub">
+            {fmt(s.net)} won − {fmt(totalPaid)} paid
+          </div>
         </div>
       </div>
 
-      <PaymentLog payments={payments} onAdd={onAddPayment} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: '0 20px 16px' }}>
+        <div className="wcs__cards wcs__cards--2" style={{ margin: 0, padding: 0, flexShrink: 0 }}>
+          <StatCard kind="alex" label="Alex"
+            value={<><span className="wcs__big">{s.alexWins}</span><span className="wcs__small"> wins</span></>}
+            sub={<>{fmt(s.alexDollars)} <span className="wcs__muted">· ${payouts.alex}/win</span></>} />
+          <StatCard kind="dad" label="Dad"
+            value={<><span className="wcs__big">{s.dadWins}</span><span className="wcs__small"> wins</span></>}
+            sub={<>{fmt(s.dadDollars)} <span className="wcs__muted">· ${payouts.dad}/win</span></>} />
+        </div>
 
-      <div className="wcs__cards wcs__cards--2">
-        <StatCard kind="alex" label="Alex"
-          value={<><span className="wcs__big">{s.alexWins}</span><span className="wcs__small"> wins</span></>}
-          sub={<>{fmt(s.alexDollars)} <span className="wcs__muted">· ${payouts.alex}/win</span></>} />
-        <StatCard kind="dad" label="Dad"
-          value={<><span className="wcs__big">{s.dadWins}</span><span className="wcs__small"> wins</span></>}
-          sub={<>{fmt(s.dadDollars)} <span className="wcs__muted">· ${payouts.dad}/win</span></>} />
+        <PaymentLog payments={payments} onAdd={onAddPayment} onDelete={onDeletePayment} />
       </div>
 
       <div className="wcs__stagestoggle">
