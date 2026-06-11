@@ -121,9 +121,8 @@ export function seedMatches() {
 }
 
 export const LIVERPOOL_COUNTRIES = new Set([
-  'Brazil', 'Netherlands', 'Germany', 'Argentina', 'Egypt', 'France',
-  'Sweden', 'Japan', 'Scotland', 'Czech Republic', 'Czechia',
-  'Colombia', 'England', 'Senegal',
+  'Argentina', 'Brazil', 'Colombia', 'Egypt', 'England', 'France',
+  'Germany', 'Japan', 'Netherlands', 'Scotland', 'Senegal', 'Sweden', 'Uruguay',
 ]);
 
 export function involvesLiverpool(m) {
