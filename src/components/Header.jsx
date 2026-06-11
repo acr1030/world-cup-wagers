@@ -94,7 +94,7 @@ function PaymentLog({ payments, onAdd, onDelete }) {
   const total = payments.reduce((s, p) => s + p.amount, 0);
 
   return (
-    <div style={{ flex: 1, minWidth: 0 }}>
+    <div style={{ minWidth: 220, textAlign: 'left' }}>
       <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase',
                     color: 'rgba(41,38,27,.45)', marginBottom: 8 }}>
         Amount Paid to Date
@@ -173,29 +173,28 @@ export default function Header({ matches, payouts, stagesOpen, onToggleStages, p
           </div>
         </div>
 
-        <div className="wcs__net" aria-label="Alex's net payout">
-          <div className="wcs__netlbl">Alex's payout</div>
-          <div className={`wcs__netval ${remaining > 0 ? 'is-pos' : remaining < 0 ? 'is-neg' : ''}`}>
-            <span className="wcs__netsign">{remSign}</span>
-            <span className="wcs__netnum">${remAbs.toLocaleString()}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 14 }}>
+          <div className="wcs__net" aria-label="Alex's net payout">
+            <div className="wcs__netlbl">Alex's payout</div>
+            <div className={`wcs__netval ${remaining > 0 ? 'is-pos' : remaining < 0 ? 'is-neg' : ''}`}>
+              <span className="wcs__netsign">{remSign}</span>
+              <span className="wcs__netnum">${remAbs.toLocaleString()}</span>
+            </div>
+            <div className="wcs__netsub">
+              {fmt(s.net)} won − {fmt(totalPaid)} paid
+            </div>
           </div>
-          <div className="wcs__netsub">
-            {fmt(s.net)} won − {fmt(totalPaid)} paid
-          </div>
+          <PaymentLog payments={payments} onAdd={onAddPayment} onDelete={onDeletePayment} />
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: '0 20px 16px' }}>
-        <div className="wcs__cards wcs__cards--2" style={{ margin: 0, padding: 0, flexShrink: 0 }}>
-          <StatCard kind="alex" label="Alex"
-            value={<><span className="wcs__big">{s.alexWins}</span><span className="wcs__small"> wins</span></>}
-            sub={<>{fmt(s.alexDollars)} <span className="wcs__muted">· ${payouts.alex}/win</span></>} />
-          <StatCard kind="dad" label="Dad"
-            value={<><span className="wcs__big">{s.dadWins}</span><span className="wcs__small"> wins</span></>}
-            sub={<>{fmt(s.dadDollars)} <span className="wcs__muted">· ${payouts.dad}/win</span></>} />
-        </div>
-
-        <PaymentLog payments={payments} onAdd={onAddPayment} onDelete={onDeletePayment} />
+      <div className="wcs__cards wcs__cards--2">
+        <StatCard kind="alex" label="Alex"
+          value={<><span className="wcs__big">{s.alexWins}</span><span className="wcs__small"> wins</span></>}
+          sub={<>{fmt(s.alexDollars)} <span className="wcs__muted">· ${payouts.alex}/win</span></>} />
+        <StatCard kind="dad" label="Dad"
+          value={<><span className="wcs__big">{s.dadWins}</span><span className="wcs__small"> wins</span></>}
+          sub={<>{fmt(s.dadDollars)} <span className="wcs__muted">· ${payouts.dad}/win</span></>} />
       </div>
 
       <div className="wcs__stagestoggle">
