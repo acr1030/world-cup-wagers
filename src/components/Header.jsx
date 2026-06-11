@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { STAGES, LFC_ONLY_STAGES, LIVERPOOL_COUNTRIES, resolveBet, payoutFor } from '../data.js';
 
 function isCounted(m) {
@@ -73,7 +73,66 @@ function StageBreakdown({ stats }) {
   );
 }
 
-export default function Header({ matches, payouts, stagesOpen, onToggleStages }) {
+function PaymentLog({ payments, onAdd }) {
+  const [input, setInput] = useState('');
+
+  const handleAdd = () => {
+    const n = parseFloat(input);
+    if (!n || n <= 0) return;
+    onAdd(n);
+    setInput('');
+  };
+
+  const total = payments.reduce((s, p) => s + p.amount, 0);
+
+  return (
+    <div style={{ padding: '12px 20px 14px', borderTop: '1px solid rgba(0,0,0,.07)' }}>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase',
+                    color: 'rgba(41,38,27,.45)', marginBottom: 8 }}>
+        Amount Paid to Date
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: payments.length ? 10 : 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1, maxWidth: 180,
+                      border: '1px solid rgba(0,0,0,.15)', borderRadius: 8,
+                      background: 'rgba(255,255,255,.7)', overflow: 'hidden', height: 32 }}>
+          <span style={{ padding: '0 6px 0 10px', color: 'rgba(41,38,27,.5)', fontSize: 13 }}>$</span>
+          <input
+            type="number" min="0" step="1" value={input} placeholder="0"
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAdd()}
+            style={{ flex: 1, border: 0, background: 'transparent', outline: 'none',
+                     fontSize: 13, color: '#29261b', padding: '0 8px 0 0',
+                     MozAppearance: 'textfield' }} />
+        </div>
+        <button
+          type="button" onClick={handleAdd}
+          style={{ height: 32, padding: '0 14px', borderRadius: 8, border: '1px solid rgba(0,0,0,.15)',
+                   background: 'rgba(41,38,27,.06)', color: '#29261b', fontSize: 12,
+                   fontWeight: 600, cursor: 'pointer' }}>
+          Log
+        </button>
+        {total > 0 && (
+          <span style={{ fontSize: 12, color: 'rgba(41,38,27,.5)', marginLeft: 4 }}>
+            Total: <b style={{ color: '#29261b' }}>${total.toLocaleString()}</b>
+          </span>
+        )}
+      </div>
+      {payments.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {payments.map((p, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between',
+                                   fontSize: 12, color: 'rgba(41,38,27,.65)' }}>
+              <span>{new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              <span style={{ fontWeight: 600 }}>${p.amount.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Header({ matches, payouts, stagesOpen, onToggleStages, payments, onAddPayment }) {
   const s = computeStats(matches, payouts);
   const fmt = n => '$' + n.toLocaleString();
   const netSign = s.net > 0 ? '+' : s.net < 0 ? '−' : '';
@@ -101,6 +160,8 @@ export default function Header({ matches, payouts, stagesOpen, onToggleStages })
           <div className="wcs__netsub">{fmt(s.alexDollars)} won − {fmt(s.dadDollars)} owed</div>
         </div>
       </div>
+
+      <PaymentLog payments={payments} onAdd={onAddPayment} />
 
       <div className="wcs__cards wcs__cards--2">
         <StatCard kind="alex" label="Alex"
