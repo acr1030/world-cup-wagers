@@ -6,6 +6,7 @@ const LS_SETTLED  = 'wcw.settled.v1';
 const LS_COLLAPSE = 'wcw.collapsed.v1';
 const LS_TWEAKS   = 'wcw.tweaks.v1';
 const LS_STAGES   = 'wcw.stagesOpen.v1';
+const LS_PAYMENTS = 'wcw.payments.v1';
 
 function lsLoad(key, fallback) {
   try {
@@ -122,13 +123,14 @@ export async function loadSetting(key) {
     collapsed:  {},
     tweaks:     { alexPayout: 100, dadPayout: 20 },
     stagesOpen: true,
+    payments:   [],
   };
   if (!supabase) {
     if (key === 'stagesOpen') {
       const v = localStorage.getItem(LS_STAGES);
       return v == null ? true : v === '1';
     }
-    const lsKey = { settled: LS_SETTLED, collapsed: LS_COLLAPSE, tweaks: LS_TWEAKS }[key];
+    const lsKey = { settled: LS_SETTLED, collapsed: LS_COLLAPSE, tweaks: LS_TWEAKS, payments: LS_PAYMENTS }[key];
     return lsLoad(lsKey, defaults[key]);
   }
   const { data } = await supabase
