@@ -126,7 +126,8 @@ export const LIVERPOOL_COUNTRIES = new Set([
 ]);
 
 export function involvesLiverpool(m) {
-  return LIVERPOOL_COUNTRIES.has(m.home) || LIVERPOOL_COUNTRIES.has(m.away);
+  return LIVERPOOL_COUNTRIES.has(m.home) || LIVERPOOL_COUNTRIES.has(m.away)
+      || m.home === 'United States' || m.away === 'United States';
 }
 
 export function resolveBet(m) {
