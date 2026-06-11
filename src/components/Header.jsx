@@ -4,7 +4,8 @@ import { saveSetting } from '../lib/db.js';
 
 function isCounted(m) {
   if (!LFC_ONLY_STAGES.has(m.stage)) return true;
-  return LIVERPOOL_COUNTRIES.has(m.home) || LIVERPOOL_COUNTRIES.has(m.away);
+  return LIVERPOOL_COUNTRIES.has(m.home) || LIVERPOOL_COUNTRIES.has(m.away)
+      || m.home === 'United States' || m.away === 'United States';
 }
 
 function computeStats(matches, payouts) {
