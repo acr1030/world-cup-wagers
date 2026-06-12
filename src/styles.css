@@ -140,6 +140,12 @@ input, button { font-family: inherit; color: inherit; }
   text-transform: uppercase;
 }
 
+.wcs__topright {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
 .wcs__net { text-align: right; }
 .wcs__netlbl {
   font-size: 11px;
@@ -170,6 +176,7 @@ input, button { font-family: inherit; color: inherit; }
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
+.wcs__cards--2 { grid-template-columns: repeat(2, 1fr); }
 .wcs__cards--3 { grid-template-columns: repeat(3, 1fr); }
 
 .wcs__stagestoggle {
@@ -694,6 +701,7 @@ input, button { font-family: inherit; color: inherit; }
 
 @media (max-width: 1100px) {
   .wcs__cards { grid-template-columns: repeat(2, 1fr); }
+  .wcs__cards--2 { grid-template-columns: repeat(2, 1fr); }
   .wcs__cards--3 { grid-template-columns: repeat(3, 1fr); }
   .wcs__stages { grid-template-columns: repeat(4, 1fr); }
   .wcm {
@@ -714,11 +722,48 @@ input, button { font-family: inherit; color: inherit; }
   .wcm__chip { grid-area: result; justify-self: end; align-items: flex-end; }
   .wcm__del { grid-area: del; justify-self: end; }
 }
+
 @media (max-width: 720px) {
-  .wcs__top { flex-direction: column; align-items: flex-start; }
+  /* Header */
+  .wcs__top { flex-direction: column; align-items: flex-start; gap: 12px; padding-top: 14px; }
+  .wcs__topright { align-items: flex-start; width: 100%; }
   .wcs__net { text-align: left; }
+  .wcs__netval { font-size: 32px; }
+  .wcs__netsign { font-size: 22px; }
+  .wcs__cards--2 { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .wcs__cards--3 { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .wcs__stages { grid-template-columns: repeat(4, 1fr); }
+  .wcs__top, .wcs__cards, .wcs__stages, .wcs__stagestoggle { padding-left: 14px; padding-right: 14px; }
+  /* Stage sections */
+  .wcw__main { padding: 0 14px 60px; }
+  .wcg__hd { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .wcg__rhs { width: 100%; justify-content: space-between; }
+  .wcg__lhs { gap: 8px; }
+  .wcg__title { font-size: 15px; }
+}
+
+@media (max-width: 480px) {
+  /* Header collapses payment log to full width */
+  .wcs__netval { font-size: 28px; }
   .wcs__stages { grid-template-columns: repeat(2, 1fr); }
-  .wcw__main { padding: 0 16px 60px; }
-  .wcs__top, .wcs__cards, .wcs__stages { padding: 0 16px; }
+  .wcs__card { padding: 10px 12px; }
+  /* Match card: single column on very small screens */
+  .wcm {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "teams teams"
+      "when  when"
+      "line  score"
+      "pick  pick"
+      "result result"
+      "del   del";
+    row-gap: 8px;
+  }
+  .wcm__when { grid-area: when; width: 100%; }
+  .wcm__chip { grid-area: result; justify-self: start; align-items: flex-start; }
+  .wcm__score { grid-area: score; justify-self: end; }
+  /* Stage header wraps filter below title */
+  .wcg__filter { flex-wrap: wrap; }
+  .wcg__add { font-size: 12px; padding: 6px 10px; }
+  .wcw__footacts { flex-wrap: wrap; }
 }
