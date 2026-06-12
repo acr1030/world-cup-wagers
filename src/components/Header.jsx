@@ -173,7 +173,7 @@ export default function Header({ matches, payouts, stagesOpen, onToggleStages, p
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 14 }}>
+        <div className="wcs__topright">
           <div className="wcs__net" aria-label="Alex's net payout">
             <div className="wcs__netlbl">Alex's payout</div>
             <div className={`wcs__netval ${remaining > 0 ? 'is-pos' : remaining < 0 ? 'is-neg' : ''}`}>
