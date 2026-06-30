@@ -75,15 +75,26 @@ function seedGroupMatches() {
   return out;
 }
 
-const R32_PAIRINGS = [
-  ['1A','2C'], ['1L','3rd ?'], ['1F','2E'], ['1H','2J'],
-  ['1B','3rd ?'], ['1K','2I'], ['1G','3rd ?'], ['1E','2F'],
-  ['1I','2K'], ['1D','2B'], ['1J','3rd ?'], ['1C','2A'],
-  ['1A','3rd ?'], ['1L','2H'], ['1D','3rd ?'], ['1G','2L'],
+const R32_MATCHES = [
+  { home: 'South Africa',  away: 'Canada',                 kickoff: '2026-06-28T15:00' },
+  { home: 'Brazil',        away: 'Japan',                  kickoff: '2026-06-29T13:00' },
+  { home: 'Germany',       away: 'Paraguay',               kickoff: '2026-06-29T16:30' },
+  { home: 'Netherlands',   away: 'Morocco',                kickoff: '2026-06-29T21:00' },
+  { home: 'Ivory Coast',   away: 'Norway',                 kickoff: '2026-06-30T13:00' },
+  { home: 'France',        away: 'Sweden',                 kickoff: '2026-06-30T17:00' },
+  { home: 'Mexico',        away: 'Ecuador',                kickoff: '2026-06-30T21:00' },
+  { home: 'England',       away: 'DR Congo',               kickoff: '2026-07-01T12:00' },
+  { home: 'Belgium',       away: 'Senegal',                kickoff: '2026-07-01T16:00' },
+  { home: 'United States', away: 'Bosnia and Herzegovina', kickoff: '2026-07-01T20:00' },
+  { home: 'Spain',         away: 'Austria',                kickoff: '2026-07-02T15:00' },
+  { home: 'Portugal',      away: 'Croatia',                kickoff: '2026-07-02T19:00' },
+  { home: 'Switzerland',   away: 'Algeria',                kickoff: '2026-07-02T23:00' },
+  { home: 'Australia',     away: 'Egypt',                  kickoff: '2026-07-03T14:00' },
+  { home: 'Argentina',     away: 'Cape Verde',             kickoff: '2026-07-03T18:00' },
+  { home: 'Colombia',      away: 'Ghana',                  kickoff: '2026-07-03T21:30' },
 ];
 
 const KO_DATES = {
-  r32:   ['2026-06-28','2026-06-29','2026-06-30','2026-07-01','2026-07-02','2026-07-03'],
   r16:   ['2026-07-04','2026-07-05','2026-07-06','2026-07-07'],
   qf:    ['2026-07-09','2026-07-10','2026-07-11'],
   sf:    ['2026-07-14','2026-07-15'],
@@ -99,8 +110,8 @@ function pickDate(stage, idx) {
 
 function seedKnockout() {
   const out = [];
-  R32_PAIRINGS.forEach((pair, i) => {
-    out.push({ id: uid(), stage: 'r32', round: i+1, home: pair[0], away: pair[1], kickoff: pickDate('r32',i), line:'', pick:'over', homeScore:'', awayScore:'' });
+  R32_MATCHES.forEach((m, i) => {
+    out.push({ id: uid(), stage: 'r32', round: i+1, home: m.home, away: m.away, kickoff: m.kickoff, line:'', pick:'over', homeScore:'', awayScore:'' });
   });
   for (let i = 0; i < 8; i++) {
     out.push({ id: uid(), stage:'r16', round:i+1, home:`Winner R32-${i*2+1}`, away:`Winner R32-${i*2+2}`, kickoff:pickDate('r16',i), line:'', pick:'over', homeScore:'', awayScore:'' });
